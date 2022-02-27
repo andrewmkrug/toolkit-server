@@ -1,7 +1,6 @@
 import * as stream from 'stream';
 import * as path from 'path';
 import * as adb from '@devicefarmer/adbkit';
-import { reportError } from '../../error-tracking';
 import { isErrorLike } from '../../util/error';
 import { delay, waitUntil } from '../../util/promise';
 import { getCertificateFingerprint, parseCert } from '../../certificates';
@@ -22,7 +21,7 @@ export function createAdbClient() {
 
     // We listen for errors and report them. This only happens if adbkit completely
     // fails to handle or listen to a connection error. We'd rather report that than crash.
-    client.on('error', reportError);
+    client.on('error', console.log);
 
     return client;
 }
@@ -62,24 +61,24 @@ export const getConnectedDevices = batchCalls(async (adbClient: adb.AdbClient) =
             ).map(d => d.id);
     } catch (e) {
         if (isErrorLike(e) && (
-                e.code === 'ENOENT' || // No ADB available
-                e.code === 'EACCES' || // ADB available, but we aren't allowed to run it
-                e.code === 'EPERM' || // Permissions error launching ADB
-                e.code === 'ECONNREFUSED' || // Tried to start ADB, but still couldn't connect
-                e.code === 'ENOTDIR' || // ADB path contains something that's not a directory
-                e.signal === 'SIGKILL' || // In some envs 'adb start-server' is always killed (why?)
-                (e.cmd && e.code)      // ADB available, but "adb start-server" failed
-            )
+            e.code === 'ENOENT' || // No ADB available
+            e.code === 'EACCES' || // ADB available, but we aren't allowed to run it
+            e.code === 'EPERM' || // Permissions error launching ADB
+            e.code === 'ECONNREFUSED' || // Tried to start ADB, but still couldn't connect
+            e.code === 'ENOTDIR' || // ADB path contains something that's not a directory
+            e.signal === 'SIGKILL' || // In some envs 'adb start-server' is always killed (why?)
+            (e.cmd && e.code)      // ADB available, but "adb start-server" failed
+        )
         ) {
             if (e.code !== 'ENOENT') {
                 console.log(`ADB unavailable, ${e.cmd
                     ? `${e.cmd} exited with ${e.code}`
                     : `due to ${e.code}`
-                }`);
+                    }`);
             }
             return [];
         } else {
-            reportError(e);
+            console.log(e);
             throw e;
         }
     }
@@ -87,7 +86,7 @@ export const getConnectedDevices = batchCalls(async (adbClient: adb.AdbClient) =
 
 export function stringAsStream(input: string) {
     const contentStream = new stream.Readable();
-    contentStream._read = () => {};
+    contentStream._read = () => { };
     contentStream.push(input);
     contentStream.push(null);
     return contentStream;
@@ -100,8 +99,8 @@ async function run(
     options: {
         timeout?: number
     } = {
-        timeout: 10000
-    }
+            timeout: 10000
+        }
 ): Promise<string> {
     return Promise.race([
         adbClient.shell(deviceId, command)
@@ -110,7 +109,7 @@ async function run(
         ...(options.timeout
             ? [
                 delay(options.timeout)
-                .then(() => { throw new Error(`Timeout for ADB command ${command}`) })
+                    .then(() => { throw new Error(`Timeout for ADB command ${command}`) })
             ]
             : []
         )
@@ -142,7 +141,7 @@ export async function getRootCommand(adbClient: adb.AdbClient, deviceId: string)
     const rootCheckResults = await Promise.all(
         runAsRootCommands.map((cmd) =>
             run(adbClient, deviceId, cmd.concat('whoami'), { timeout: 1000 }).catch(console.log)
-            .then((whoami) => ({ cmd, whoami }))
+                .then((whoami) => ({ cmd, whoami }))
         )
     )
 

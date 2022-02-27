@@ -2,9 +2,8 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import { SpawnOptions } from 'child_process';
 
-import { APP_ROOT } from '../constants';
+import { APP_ROOT, AMIUSING } from '../constants';
 import { HtkConfig } from '../config';
-import { reportError } from '../error-tracking';
 
 import { getAvailableBrowsers, launchBrowser, BrowserInstance } from '../browsers';
 import { delay } from '../util/promise';
@@ -191,7 +190,7 @@ export class FreshFirefox implements Interceptor {
         );
         await messageServer.start();
 
-        let messageShown: Promise<void> | true = messageServer.waitForSuccess().catch(reportError);
+        let messageShown: Promise<void> | true = messageServer.waitForSuccess().catch(console.log);
 
         profileSetupBrowser = await this.startFirefox(messageServer);
         profileSetupBrowser.process.once('close', (exitCode) => {
@@ -200,7 +199,7 @@ export class FreshFirefox implements Interceptor {
             profileSetupBrowser = undefined;
 
             if (messageShown !== true) {
-                reportError(`Firefox profile setup failed with code ${exitCode}`);
+                console.log(`Firefox profile setup failed with code ${exitCode}`);
                 deleteFolder(this.firefoxProfilePath).catch(console.warn);
             }
         });
@@ -221,12 +220,12 @@ export class FreshFirefox implements Interceptor {
         const certutil = await getCertutilCommand();
         const certUtilResult = await spawnToResult(
             certutil.command, [
-                '-A',
-                '-d', `sql:${this.firefoxProfilePath}`,
-                '-t', 'C,,',
-                '-i', this.config.https.certPath,
-                '-n', 'HTTP Toolkit'
-            ],
+            '-A',
+            '-d', `sql:${this.firefoxProfilePath}`,
+            '-t', 'C,,',
+            '-i', this.config.https.certPath,
+            '-n', 'HTTP Toolkit'
+        ],
             certutil.options || {}
         );
 
@@ -270,7 +269,7 @@ export class FreshFirefox implements Interceptor {
             }, {});
 
         const certCheckServer = new CertCheckServer(this.config);
-        await certCheckServer.start("https://amiusing.httptoolkit.tech");
+        await certCheckServer.start(AMIUSING);
 
         const browser = await this.startFirefox(certCheckServer, proxyPort, existingPrefs);
 
@@ -279,7 +278,7 @@ export class FreshFirefox implements Interceptor {
             certCheckSuccessful = true;
         }).catch((e) => {
             certCheckSuccessful = false;
-            reportError(e);
+            console.log(e);
         });
 
         browsers[proxyPort] = browser;
@@ -295,11 +294,10 @@ export class FreshFirefox implements Interceptor {
             certCheckServer.stop();
 
             if (!certCheckSuccessful) {
-                reportError(`Firefox certificate check ${
-                    certCheckSuccessful === false
-                        ? "failed"
-                        : "did not complete"
-                } with FF exit code ${exitCode}`);
+                console.log(`Firefox certificate check ${certCheckSuccessful === false
+                    ? "failed"
+                    : "did not complete"
+                    } with FF exit code ${exitCode}`);
                 deleteFolder(this.firefoxProfilePath).catch(console.warn);
             }
         });

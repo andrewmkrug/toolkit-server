@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import { generateSPKIFingerprint } from 'mockttp';
+import { AMIUSING } from '../constants';
 
 import { HtkConfig } from '../config';
 
@@ -15,7 +16,6 @@ import { readFile, deleteFolder } from '../util/fs';
 import { listRunningProcesses, windowsClose, waitForExit } from '../util/process-management';
 import { HideWarningServer } from '../hide-warning-server';
 import { Interceptor } from '.';
-import { reportError } from '../error-tracking';
 
 const getBrowserDetails = async (config: HtkConfig, variant: string): Promise<Browser | undefined> => {
     const browsers = await getAvailableBrowsers(config.configPath);
@@ -82,7 +82,7 @@ abstract class FreshChromiumBasedInterceptor implements Interceptor {
         if (this.isActive(proxyPort)) return;
 
         const hideWarningServer = new HideWarningServer(this.config);
-        await hideWarningServer.start('https://amiusing.httptoolkit.tech');
+        await hideWarningServer.start(AMIUSING);
 
         const browserDetails = await getBrowserDetails(this.config, this.variantName);
 
@@ -93,7 +93,7 @@ abstract class FreshChromiumBasedInterceptor implements Interceptor {
                 proxyPort,
                 hideWarningServer
             )
-        , this.config.configPath);
+            , this.config.configPath);
 
         if (browser.process.stdout) browser.process.stdout.pipe(process.stdout);
         if (browser.process.stderr) browser.process.stderr.pipe(process.stderr);
@@ -115,17 +115,17 @@ abstract class FreshChromiumBasedInterceptor implements Interceptor {
 
                 const profilePath = browserDetails.profile;
                 if (!profilePath.startsWith(this.config.configPath)) {
-                    reportError(
+                    console.log(
                         `Unexpected ${this.variantName} profile location, not deleting: ${profilePath}`
                     );
                 } else {
                     const profileFolder = browserDetails.profile;
                     deleteFolder(profileFolder)
-                    .catch(async() => {
-                        // After 1 error, wait a little and retry
-                        await delay(1000);
-                        await deleteFolder(profileFolder);
-                    }).catch(console.warn); // If it still fails, just give up, not a big deal
+                        .catch(async () => {
+                            // After 1 error, wait a little and retry
+                            await delay(1000);
+                            await deleteFolder(profileFolder);
+                        }).catch(console.warn); // If it still fails, just give up, not a big deal
                 }
             }
         });
@@ -222,7 +222,7 @@ abstract class ExistingChromiumBasedInterceptor implements Interceptor {
         if (!this.isActivable()) return;
 
         const hideWarningServer = new HideWarningServer(this.config);
-        await hideWarningServer.start('https://amiusing.httptoolkit.tech');
+        await hideWarningServer.start(AMIUSING);
 
         const existingPid = await this.findExistingPid();
         if (existingPid) {
@@ -303,7 +303,7 @@ abstract class ExistingChromiumBasedInterceptor implements Interceptor {
                     await windowsClose(browser!.pid)
                         .then(() => waitForExit(browser!.pid));
                     return;
-                } catch (e) {} // If this fails/times out, kill like we do elsewhere:
+                } catch (e) { } // If this fails/times out, kill like we do elsewhere:
             }
 
             const exitPromise = new Promise((resolve) => browser!.process.once('close', resolve));

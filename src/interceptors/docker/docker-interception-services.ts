@@ -1,7 +1,6 @@
 import * as Docker from 'dockerode';
 import { ProxySettingCallback } from 'mockttp';
 
-import { reportError } from '../../error-tracking';
 import { addShutdownHandler } from '../../shutdown';
 
 import { DOCKER_BUILD_LABEL } from './docker-build-injection';
@@ -22,8 +21,8 @@ import {
 
 export const isDockerAvailable = () =>
     (async () => new Docker().ping())() // Catch sync & async setup errors
-    .then(() => true)
-    .catch(() => false);
+        .then(() => true)
+        .catch(() => false);
 
 const IPv4_IPv6_PREFIX = "::ffff:";
 
@@ -73,7 +72,7 @@ export async function ensureDockerServicesRunning(proxyPort: number) {
         monitorDockerNetworkAliases(proxyPort),
         ensureDockerTunnelRunning(proxyPort),
         getDnsServer(proxyPort)
-    ]).catch(reportError);
+    ]).catch(console.log);
 }
 
 export async function stopDockerInterceptionServices(
@@ -110,8 +109,8 @@ export async function deleteAllInterceptedDockerData(proxyPort: number | 'all'):
                 filters: JSON.stringify({
                     label: [
                         proxyPort === 'all'
-                        ? DOCKER_CONTAINER_LABEL
-                        : `${DOCKER_CONTAINER_LABEL}=${proxyPort}`
+                            ? DOCKER_CONTAINER_LABEL
+                            : `${DOCKER_CONTAINER_LABEL}=${proxyPort}`
                     ]
                 })
             });
@@ -120,8 +119,8 @@ export async function deleteAllInterceptedDockerData(proxyPort: number | 'all'):
                 const container = docker.getContainer(containerData.Id);
 
                 // Best efforts clean stop & remove:
-                await container.stop({ t: 1 }).catch(() => {});
-                await container.remove({ force: true }).catch(() => {});
+                await container.stop({ t: 1 }).catch(() => { });
+                await container.remove({ force: true }).catch(() => { });
             }));
 
             // We clean up images after containers, in case some containers depended
@@ -131,14 +130,14 @@ export async function deleteAllInterceptedDockerData(proxyPort: number | 'all'):
                 filters: JSON.stringify({
                     label: [
                         proxyPort === 'all'
-                        ? DOCKER_BUILD_LABEL
-                        : `${DOCKER_BUILD_LABEL}=${proxyPort}`
+                            ? DOCKER_BUILD_LABEL
+                            : `${DOCKER_BUILD_LABEL}=${proxyPort}`
                     ]
                 })
             });
 
             await Promise.all(images.map(async (imageData) => {
-                await docker.getImage(imageData.Id).remove().catch(() => {});
+                await docker.getImage(imageData.Id).remove().catch(() => { });
             }));
 
             // Unmark this deactivation as pending

@@ -6,7 +6,6 @@ import { Interceptor } from '.';
 import { HtkConfig } from '../config';
 import { spawnToResult, waitForExit } from '../util/process-management';
 import { OVERRIDE_JAVA_AGENT } from './terminal/terminal-env-overrides';
-import { reportError } from '../error-tracking';
 import { delay } from '../util/promise';
 import { commandExists, canAccess } from '../util/fs';
 
@@ -18,14 +17,14 @@ const javaBinPromise: Promise<string | false> = (async () => {
     const javaBinPaths = [
         // $JAVA_HOME/bin/java is the way to explicitly configure this
         !!process.env.JAVA_HOME &&
-            path.join(process.env.JAVA_HOME!!, 'bin', 'java'),
+        path.join(process.env.JAVA_HOME!!, 'bin', 'java'),
 
         // Magic Mac helper for exactly this, used if available
         await getMacJavaHome(),
 
         // Fallback to $PATH, but not on Mac, where by default this is a "Install Java" dialog warning
         (await commandExists('java')) && process.platform !== "darwin" &&
-            'java'
+        'java'
 
         // In future, we could improve this by also finding & using the JVM from Android Studio. See
         // Flutter's implementation of logic required to do this:
@@ -61,7 +60,7 @@ const javaBinPromise: Promise<string | false> = (async () => {
         return false;
     }
 })().catch((e) => {
-    reportError(e);
+    console.log(e);
     return false;
 });
 
@@ -79,10 +78,10 @@ function testJavaBin(possibleJavaBin: string) {
     return Promise.race([
         spawnToResult(
             possibleJavaBin, [
-                '-Djdk.attach.allowAttachSelf=true', // Required for self-test
-                '-jar', OVERRIDE_JAVA_AGENT,
-                'self-test'
-            ]
+            '-Djdk.attach.allowAttachSelf=true', // Required for self-test
+            '-jar', OVERRIDE_JAVA_AGENT,
+            'self-test'
+        ]
         ),
         // Time out permanently after 30 seconds - this only runs once max anyway
         delay(30000).then(() => {
@@ -139,13 +138,13 @@ export class JvmInterceptor implements Interceptor {
 
         const listTargetsOutput = await spawnToResult(
             javaBin, [
-                '-jar', OVERRIDE_JAVA_AGENT,
-                'list-targets'
-            ]
+            '-jar', OVERRIDE_JAVA_AGENT,
+            'list-targets'
+        ]
         );
 
         if (listTargetsOutput.exitCode !== 0) {
-            reportError(`JVM target lookup failed with status ${listTargetsOutput.exitCode}`);
+            console.log(`JVM target lookup failed with status ${listTargetsOutput.exitCode}`);
             return [];
         }
 
@@ -174,12 +173,12 @@ export class JvmInterceptor implements Interceptor {
     }): Promise<void> {
         const interceptionResult = await spawnToResult(
             'java', [
-                '-jar', OVERRIDE_JAVA_AGENT,
-                options.targetPid,
-                '127.0.0.1',
-                proxyPort.toString(),
-                this.config.https.certPath
-            ],
+            '-jar', OVERRIDE_JAVA_AGENT,
+            options.targetPid,
+            '127.0.0.1',
+            proxyPort.toString(),
+            this.config.https.certPath
+        ],
             {}
         );
 
@@ -192,15 +191,15 @@ export class JvmInterceptor implements Interceptor {
 
             // Poll the status of this pid every 250ms - remove it once it disappears.
             waitForExit(parseInt(options.targetPid, 10), Infinity)
-            .then(() => {
-                delete this.interceptedProcesses[options.targetPid];
-            });
+                .then(() => {
+                    delete this.interceptedProcesses[options.targetPid];
+                });
         }
     }
 
     // Nothing we can do to deactivate, unfortunately. In theory the agent could do this, unwriting all
     // it's changes, but it's *super* complicated to do for limited benefit.
-    async deactivate(proxyPort: number | string): Promise<void> {}
-    async deactivateAll(): Promise<void> {}
+    async deactivate(proxyPort: number | string): Promise<void> { }
+    async deactivateAll(): Promise<void> { }
 
 }

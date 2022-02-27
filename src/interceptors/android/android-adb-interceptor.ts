@@ -5,7 +5,6 @@ import { Interceptor } from '..';
 import { HtkConfig } from '../../config';
 import { generateSPKIFingerprint } from 'mockttp';
 
-import { reportError } from '../../error-tracking';
 import { delay } from '../../util/promise';
 import {
     ANDROID_TEMP,
@@ -84,7 +83,7 @@ export class AndroidAdbInterceptor implements Interceptor {
             this.adbClient,
             options.deviceId,
             'tech.httptoolkit.android.v1/tech.httptoolkit.android.MainActivity'
-        ).catch(reportError); // Not that important, so we continue if this fails somehow
+        ).catch(console.log); // Not that important, so we continue if this fails somehow
 
         // Build a trigger URL to activate the proxy on the device:
         const setupParams = {
@@ -105,7 +104,7 @@ export class AndroidAdbInterceptor implements Interceptor {
         };
         const intentData = urlSafeBase64(JSON.stringify(setupParams));
 
-        await this.adbClient.reverse(options.deviceId, 'tcp:' + proxyPort, 'tcp:' + proxyPort).catch(() => {});
+        await this.adbClient.reverse(options.deviceId, 'tcp:' + proxyPort, 'tcp:' + proxyPort).catch(() => { });
 
         // Use ADB to launch the app with the proxy details
         await this.adbClient.startActivity(options.deviceId, {
@@ -168,7 +167,7 @@ export class AndroidAdbInterceptor implements Interceptor {
         return Promise.all(
             Object.keys(this.deviceProxyMapping)
                 .map(port => this.deactivate(port)
-            )
+                )
         );
     }
 
@@ -204,7 +203,7 @@ export class AndroidAdbInterceptor implements Interceptor {
             await injectSystemCertificate(this.adbClient, deviceId, rootCmd, certPath);
             console.log(`Cert injected`);
         } catch (e) {
-            reportError(e);
+            console.log(e);
         }
     }
 }

@@ -1,5 +1,4 @@
 // Import types only from TS
-type ErrorTrackingModule = typeof import('../error-tracking');
 type IndexTypeModule = typeof import('../index');
 
 // We accept auth tokens from the environment, allowing a token to be
@@ -29,8 +28,6 @@ function maybeBundleImport<T>(moduleName: string): T {
         return require('../' + moduleName);
     }
 }
-const { initErrorTracking, reportError } = maybeBundleImport<ErrorTrackingModule>('error-tracking');
-initErrorTracking();
 
 import { Command, flags } from '@oclif/command'
 
@@ -40,11 +37,11 @@ class HttpToolkitServer extends Command {
     static description = 'start the HTTP Toolkit server'
 
     static flags = {
-        version: flags.version({char: 'v'}),
-        help: flags.help({char: 'h'}),
+        version: flags.version({ char: 'v' }),
+        help: flags.help({ char: 'h' }),
 
-        config: flags.string({char: 'c', description: 'optional path in which to store config files'}),
-        token: flags.string({char: 't', description: 'optional token to authenticate local server access'}),
+        config: flags.string({ char: 'c', description: 'optional path in which to store config files' }),
+        token: flags.string({ char: 't', description: 'optional token to authenticate local server access' }),
     }
 
     async run() {
@@ -56,7 +53,7 @@ class HttpToolkitServer extends Command {
             configPath: flags.config,
             authToken: envToken || flags.token
         }).catch(async (error) => {
-            await reportError(error);
+            await console.log(error);
             throw error;
         });
     }
@@ -72,11 +69,11 @@ class HttpToolkitServer extends Command {
 
         // Be careful - if the server path isn't clearly ours somehow, ignore it.
         if (!isOwnedPath(serverUpdatesPath)) {
-            reportError(`Unexpected server updates path (${serverUpdatesPath}), ignoring`);
+            console.log(`Unexpected server updates path (${serverUpdatesPath}), ignoring`);
             return;
         }
 
-        const serverPaths= await fs.readdir(serverUpdatesPath)
+        const serverPaths = await fs.readdir(serverUpdatesPath)
             .catch((e) => {
                 if (e.code === 'ENOENT') return null;
                 else throw e;
@@ -91,7 +88,7 @@ class HttpToolkitServer extends Command {
             filename !== '.DS_Store' // Meaningless Mac folder metadata
         )) {
             console.log(serverPaths);
-            reportError(
+            console.log(
                 `Server path (${serverUpdatesPath}) contains unexpected content, ignoring`
             );
             return;
@@ -103,7 +100,7 @@ class HttpToolkitServer extends Command {
                 'EPERM'
             ].includes(error.code!)) return;
 
-            else reportError(error);
+            else console.log(error);
         };
 
         if (serverPaths.every((filename) => {
@@ -158,7 +155,7 @@ function isOwnedPath(input: string) {
     if (input.split(path.sep).includes('httptoolkit-server')) {
         return true;
     } else {
-        reportError(`Unexpected unowned path ${input}`);
+        console.log(`Unexpected unowned path ${input}`);
         return false;
     }
 }

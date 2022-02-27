@@ -4,7 +4,6 @@ import * as Docker from 'dockerode';
 import * as EventStream from 'event-stream';
 import * as mobx from 'mobx';
 
-import { reportError } from '../../error-tracking';
 
 import { DOCKER_HOST_HOSTNAME, isInterceptedContainer } from './docker-commands';
 import { isDockerAvailable } from './docker-interception-services';
@@ -88,7 +87,7 @@ export async function monitorDockerNetworkAliases(proxyPort: number): Promise<Do
         const stream = getDockerEventStream(docker);
         stream.on('error', (e) => {
             console.log(`Docker stream for port ${proxyPort} hit an error`);
-            reportError(e);
+            console.log(e);
         });
 
         const dnsServer = await getDnsServer(proxyPort);
@@ -351,19 +350,19 @@ class DockerNetworkMonitor {
                 // which seems to match how resolution against /etc/hosts works in general.
                 aliases.push(
                     ..._(container.HostConfig.ExtraHosts ?? [])
-                    .reverse() // We want first conflict to win, not last
-                    .map((hostPair) => {
-                        const hostParts = hostPair.split(':')
-                        const alias = hostParts[0];
-                        const target = hostParts.slice(1).join(':');
-                        const targetIp = target === 'host-gateway'
-                            ? '127.0.0.1'
-                            : target;
-                        return [alias, targetIp] as const
-                    })
-                    // Drop all but the first result for each ExtraHosts alias:
-                    .uniqBy(([alias]) => alias)
-                    .valueOf()
+                        .reverse() // We want first conflict to win, not last
+                        .map((hostPair) => {
+                            const hostParts = hostPair.split(':')
+                            const alias = hostParts[0];
+                            const target = hostParts.slice(1).join(':');
+                            const targetIp = target === 'host-gateway'
+                                ? '127.0.0.1'
+                                : target;
+                            return [alias, targetIp] as const
+                        })
+                        // Drop all but the first result for each ExtraHosts alias:
+                        .uniqBy(([alias]) => alias)
+                        .valueOf()
                 );
 
                 // Containers also may have links configured (legacy, but still supported & used I think):
@@ -390,9 +389,9 @@ class DockerNetworkMonitor {
                         linkedContainer.NetworkSettings.IPAddress;
 
                     return [
-                        [ linkAlias, linkedContainerIp ] as const,
-                        [ linkedContainer.Name, linkedContainerIp ] as const,
-                        [ linkedContainer.Config.Hostname, linkedContainerIp ] as const
+                        [linkAlias, linkedContainerIp] as const,
+                        [linkedContainer.Name, linkedContainerIp] as const,
+                        [linkedContainer.Config.Hostname, linkedContainerIp] as const
                     ] as const;
                 }));
 
