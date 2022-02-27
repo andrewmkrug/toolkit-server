@@ -1,6 +1,7 @@
 import * as path from 'path';
 
 export const IS_PROD_BUILD = !!process.env.HTTPTOOLKIT_SERVER_BINPATH;
+export const AMIUSING = "https://amiusing.toolkit.krugweb.services"
 
 // Notably, for this file, this is the same when either bundled or unbundled.
 // That's not true for most other files! Everything should use this instead of __dirname:
@@ -12,7 +13,9 @@ export const ALLOWED_ORIGINS = IS_PROD_BUILD
         // ensures that no other sites/apps can communicate with your server
         // whilst you have the app open. If they could (requires an HTTP mitm),
         // they would be able to start proxies & interceptors.
-        /^https:\/\/app\.httptoolkit\.tech$/
+        /^https:\/\/app\.httptoolkit\.tech$/,
+        /^https:\/\/toolkit\.krugweb\.services$/
+
     ]
     : [
         // Dev builds can use the main site, or local sites, even if those
@@ -21,7 +24,9 @@ export const ALLOWED_ORIGINS = IS_PROD_BUILD
         // resolving to localhost and never hitting the network).
         /^https?:\/\/localhost(:\d+)?$/,
         /^http:\/\/local\.httptoolkit\.tech(:\d+)?$/,
-        /^https:\/\/app\.httptoolkit\.tech$/
+        /^https:\/\/app\.httptoolkit\.tech$/,
+        /^https:\/\/toolkit\.krugweb\.services$/
+
     ]
 
 // The range of ports that should be used by invisible ephemeral services, such as Firefox's

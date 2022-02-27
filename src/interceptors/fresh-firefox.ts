@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import { SpawnOptions } from 'child_process';
 
-import { APP_ROOT } from '../constants';
+import { APP_ROOT, AMIUSING } from '../constants';
 import { HtkConfig } from '../config';
 import { reportError } from '../error-tracking';
 
@@ -221,12 +221,12 @@ export class FreshFirefox implements Interceptor {
         const certutil = await getCertutilCommand();
         const certUtilResult = await spawnToResult(
             certutil.command, [
-                '-A',
-                '-d', `sql:${this.firefoxProfilePath}`,
-                '-t', 'C,,',
-                '-i', this.config.https.certPath,
-                '-n', 'HTTP Toolkit'
-            ],
+            '-A',
+            '-d', `sql:${this.firefoxProfilePath}`,
+            '-t', 'C,,',
+            '-i', this.config.https.certPath,
+            '-n', 'HTTP Toolkit'
+        ],
             certutil.options || {}
         );
 
@@ -270,7 +270,7 @@ export class FreshFirefox implements Interceptor {
             }, {});
 
         const certCheckServer = new CertCheckServer(this.config);
-        await certCheckServer.start("https://amiusing.httptoolkit.tech");
+        await certCheckServer.start(AMIUSING);
 
         const browser = await this.startFirefox(certCheckServer, proxyPort, existingPrefs);
 
@@ -295,11 +295,10 @@ export class FreshFirefox implements Interceptor {
             certCheckServer.stop();
 
             if (!certCheckSuccessful) {
-                reportError(`Firefox certificate check ${
-                    certCheckSuccessful === false
-                        ? "failed"
-                        : "did not complete"
-                } with FF exit code ${exitCode}`);
+                reportError(`Firefox certificate check ${certCheckSuccessful === false
+                    ? "failed"
+                    : "did not complete"
+                    } with FF exit code ${exitCode}`);
                 deleteFolder(this.firefoxProfilePath).catch(console.warn);
             }
         });
