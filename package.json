@@ -1,6 +1,6 @@
 {
   "name": "toolkit-server",
-  "version": "1.7.3",
+  "version": "1.7.1",
   "author": "Tim Perry <pimterry@gmail.com>",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
@@ -160,7 +160,8 @@
       "win-version-info",
       "env-paths",
       "mockttp",
-      "async-mutex"
+      "async-mutex",
+      "os-proxy-config"
     ],
     "update": {
       "s3": {
