@@ -158,7 +158,8 @@
       "vm2",
       "registry-js",
       "win-version-info",
-      "env-paths"
+      "env-paths",
+      "mockttp"
     ],
     "update": {
       "s3": {
