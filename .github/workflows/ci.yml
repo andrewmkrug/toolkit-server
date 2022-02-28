@@ -133,7 +133,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./distributables/*/*
           file_glob: true
-          tag: ${{ github.ref }}
+          tag: $npm_package_version
 
       - name: Upload latest manifest
         uses: svenstaro/upload-release-action@v2
