@@ -1,11 +1,11 @@
 {
-  "name": "httptoolkit-server",
-  "version": "1.7.0",
+  "name": "toolkit-server",
+  "version": "1.7.1",
   "author": "Tim Perry <pimterry@gmail.com>",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
   "bin": {
-    "httptoolkit-server": "./bin/run"
+    "toolkit-server": "./bin/run"
   },
   "files": [
     "oclif.manifest.json",
@@ -148,7 +148,7 @@
   ],
   "license": "AGPL-3.0-or-later",
   "oclif": {
-    "bin": "httptoolkit-server",
+    "bin": "toolkit-server",
     "commands": "./lib/commands",
     "plugins": [
       "@oclif/plugin-update"
@@ -164,7 +164,7 @@
     ],
     "update": {
       "s3": {
-        "host": "https://github.com/httptoolkit/httptoolkit-server/releases/download/",
+        "host": "https://github.com/andrewmkrug/toolkit-server/releases/download/",
         "templates": {
           "target": {
             "versioned": "v<%- version %>/<%- channel === 'stable' ? '' : channel + '-' %><%- bin %>-v<%- version %>-<%- platform %>-<%- arch %><%- ext %>",
