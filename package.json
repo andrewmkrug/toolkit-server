@@ -1,6 +1,6 @@
 {
   "name": "toolkit-server",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "author": "Tim Perry <pimterry@gmail.com>",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
@@ -157,7 +157,8 @@
       "@oclif/plugin-update",
       "vm2",
       "registry-js",
-      "win-version-info"
+      "win-version-info",
+      "env-paths"
     ],
     "update": {
       "s3": {
