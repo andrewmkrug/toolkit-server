@@ -1,8 +1,8 @@
 import * as path from 'path';
 
 export const IS_PROD_BUILD = !!process.env.HTTPTOOLKIT_SERVER_BINPATH;
-export const AMIUSING = "https://amiusing.toolkit.krugweb.services"
 
+export const AMIUSING = "https://amiusing.httptoolkit.tech"
 // Notably, for this file, this is the same when either bundled or unbundled.
 // That's not true for most other files! Everything should use this instead of __dirname:
 export const APP_ROOT = path.join(__dirname, '..');
