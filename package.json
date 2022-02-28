@@ -159,7 +159,8 @@
       "registry-js",
       "win-version-info",
       "env-paths",
-      "mockttp"
+      "mockttp",
+      "async-mutex"
     ],
     "update": {
       "s3": {
