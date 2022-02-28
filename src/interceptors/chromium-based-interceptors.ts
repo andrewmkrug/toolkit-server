@@ -16,7 +16,6 @@ import { readFile, deleteFolder } from '../util/fs';
 import { listRunningProcesses, windowsClose, waitForExit } from '../util/process-management';
 import { HideWarningServer } from '../hide-warning-server';
 import { Interceptor } from '.';
-import { reportError } from '../error-tracking';
 
 const getBrowserDetails = async (config: HtkConfig, variant: string): Promise<Browser | undefined> => {
     const browsers = await getAvailableBrowsers(config.configPath);
@@ -116,7 +115,7 @@ abstract class FreshChromiumBasedInterceptor implements Interceptor {
 
                 const profilePath = browserDetails.profile;
                 if (!profilePath.startsWith(this.config.configPath)) {
-                    reportError(
+                    console.log(
                         `Unexpected ${this.variantName} profile location, not deleting: ${profilePath}`
                     );
                 } else {

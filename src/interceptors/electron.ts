@@ -14,7 +14,6 @@ import { isErrorLike } from '../util/error';
 import { readFile } from '../util/fs';
 import { windowsClose } from '../util/process-management';
 import { getTerminalEnvVars, OVERRIDES_DIR } from './terminal/terminal-env-overrides';
-import { reportError, addBreadcrumb } from '../error-tracking';
 import { findExecutableInApp } from '@httptoolkit/osx-find-executable';
 
 const isAppBundle = (path: string) => {
@@ -28,7 +27,7 @@ export class ElectronInterceptor implements Interceptor {
 
     private debugClients: {
         [port: string]: Array<ChromeRemoteInterface.CdpClient>
-     } = {};
+    } = {};
 
     constructor(private config: HtkConfig) { }
 
@@ -70,7 +69,7 @@ export class ElectronInterceptor implements Interceptor {
         let retries = 10;
 
         appProcess.on('error', async (e) => {
-            reportError(e);
+            console.log(e);
 
             if (debugClient) {
                 // Try to close the debug connection if open, but very carefully
@@ -127,7 +126,7 @@ export class ElectronInterceptor implements Interceptor {
             expression: `require(${
                 // Need to stringify to handle chars that need escaping (e.g. windows backslashes)
                 JSON.stringify(path.join(OVERRIDES_DIR, 'js', 'prepend-electron.js'))
-            })({
+                })({
                 newlineEncodedCertData: "${(await this.certData).replace(/\r\n|\r|\n/g, '\\n')}",
                 spkiFingerprint: "${generateSPKIFingerprint(await this.certData)}"
             })`,
@@ -138,7 +137,7 @@ export class ElectronInterceptor implements Interceptor {
             const exception = injectionResult.exceptionDetails as any;
             console.log(exception);
 
-            addBreadcrumb("Evaluate error", {
+            console.log("Evaluate error", {
                 message: exception && exception.description,
                 data: injectionResult.exceptionDetails as { [key: string]: any }
             });
@@ -190,7 +189,7 @@ export class ElectronInterceptor implements Interceptor {
                     await Promise.race([
                         debugClient.Runtime.evaluate({
                             expression: 'process.exit(0)'
-                        }).catch(() => {}), // Ignore errors (there's an inherent race here)
+                        }).catch(() => { }), // Ignore errors (there's an inherent race here)
                         disconnectPromise // If we disconnect, evaluate can time out
                     ]);
                 };

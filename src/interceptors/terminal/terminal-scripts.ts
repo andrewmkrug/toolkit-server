@@ -5,7 +5,6 @@ import * as os from 'os';
 import * as path from 'path';
 
 import { canAccess, writeFile, renameFile, readFile } from '../../util/fs';
-import { reportError } from '../../error-tracking';
 import { OVERRIDE_BIN_PATH } from './terminal-env-overrides';
 
 // Generate POSIX paths for git-bash on Windows (or use the normal path everywhere else)
@@ -70,8 +69,7 @@ end
 ${END_CONFIG_SECTION}`;
 
 // A source-able shell script. Should work for everything except fish, sadly.
-export const getShellScript = (callbackUrl: string, env: { [name: string]: string }) => `${
-        _.map(env, (value, key) => `    export ${key}="${value.replace(/"/g, '\\"')}"`).join('\n')
+export const getShellScript = (callbackUrl: string, env: { [name: string]: string }) => `${_.map(env, (value, key) => `    export ${key}="${value.replace(/"/g, '\\"')}"`).join('\n')
     }
 
     if command -v winpty >/dev/null 2>&1; then
@@ -100,7 +98,7 @@ export const editShellStartupScripts = async () => {
 
     // .profile is used by Dash, Bash sometimes, and by Sh:
     appendOrCreateFile(path.join(os.homedir(), '.profile'), SH_SHELL_PATH_CONFIG)
-        .catch(reportError);
+        .catch(console.log);
 
     // Bash login shells use some other files by preference, if they exist.
     // Note that on OSX, all shells are login - elsewhere they only are at actual login time.
@@ -111,7 +109,7 @@ export const editShellStartupScripts = async () => {
         ],
         false, // Do nothing if they don't exist - it falls back to .profile
         SH_SHELL_PATH_CONFIG
-    ).catch(reportError);
+    ).catch(console.log);
 
     // Bash non-login shells use .bashrc, if it exists:
     appendToFirstExisting(
@@ -120,7 +118,7 @@ export const editShellStartupScripts = async () => {
         ],
         SHELL === 'bash', // If you use bash, we _always_ want to set this
         SH_SHELL_PATH_CONFIG
-    ).catch(reportError);
+    ).catch(console.log);
 
     // Zsh has its own files (both are actually used)
     appendToFirstExisting(
@@ -130,7 +128,7 @@ export const editShellStartupScripts = async () => {
         ],
         SHELL === 'zsh', // If you use zsh, we _always_ write a config file
         SH_SHELL_PATH_CONFIG
-    ).catch(reportError);
+    ).catch(console.log);
 
     // Fish always uses the same config file
     appendToFirstExisting(
@@ -139,7 +137,7 @@ export const editShellStartupScripts = async () => {
         ],
         SHELL === 'fish' || await canAccess(path.join(os.homedir(), '.config', 'fish')),
         FISH_SHELL_PATH_CONFIG
-    ).catch(reportError);
+    ).catch(console.log);
 };
 
 const removeConfigSectionsFromFile = async (path: string) => {
@@ -183,6 +181,6 @@ export const resetShellStartupScripts = () => {
         path.join(os.homedir(), '.zshrc'),
         path.join(os.homedir(), '.config', 'fish', 'config.fish'),
     ].map((configFile) =>
-        removeConfigSectionsFromFile(configFile).catch(reportError)
+        removeConfigSectionsFromFile(configFile).catch(console.log)
     ));
 };

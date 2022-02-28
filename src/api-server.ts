@@ -12,7 +12,6 @@ import { generateSPKIFingerprint, MockttpStandalone } from 'mockttp';
 import { getSystemProxy } from 'os-proxy-config';
 
 import { HtkConfig } from './config';
-import { reportError, addBreadcrumb } from './error-tracking';
 import { buildInterceptors, Interceptor, ActivationError } from './interceptors';
 import { ALLOWED_ORIGINS } from './constants';
 import { delay } from './util/promise';
@@ -100,7 +99,7 @@ const typeDefs = `
 const withFallback = <R>(p: Promise<R>, timeoutMs: number, defaultValue: R) =>
     Promise.race([
         p.catch((error) => {
-            reportError(error);
+            console.log(error);
             return defaultValue;
         }),
         delay(timeoutMs).then(() => defaultValue)
@@ -120,7 +119,7 @@ const buildResolvers = (
         Query: {
             version: () => packageJson.version,
             interceptors: () => _.values(interceptors),
-            interceptor: (_: any, { id } : { id: string }) => interceptors[id],
+            interceptor: (_: any, { id }: { id: string }) => interceptors[id],
             config: () => ({
                 certificatePath: config.https.certPath,
                 certificateContent: config.https.certContent,
@@ -131,7 +130,7 @@ const buildResolvers = (
             }),
             networkInterfaces: () => os.networkInterfaces(),
             systemProxy: () => getSystemProxy().catch((e) => {
-                reportError(e);
+                console.log(e);
                 return undefined;
             }),
             dnsServers: async (__: void, { proxyPort }: { proxyPort: number }): Promise<string[]> => {
@@ -149,7 +148,7 @@ const buildResolvers = (
                 proxyPort: number,
                 options: unknown
             }) => {
-                addBreadcrumb(`Activating ${id}`, { category: 'interceptor', data: { id, options } });
+                console.log(`Activating ${id}`, { category: 'interceptor', data: { id, options } });
 
                 const interceptor = interceptors[id];
                 if (!interceptor) throw new Error(`Unknown interceptor ${id}`);
@@ -157,17 +156,17 @@ const buildResolvers = (
                 // After 30s, don't stop activating, but report an error if we're not done yet
                 let activationDone = false;
                 delay(30000).then(() => {
-                    if (!activationDone) reportError(`Timeout activating ${id}`)
+                    if (!activationDone) console.log(`Timeout activating ${id}`)
                 });
 
                 const result = await interceptor.activate(proxyPort, options).catch((e) => e);
                 activationDone = true;
 
                 if (isActivationError(result)) {
-                    if (result.reportable !== false) reportError(result);
+                    if (result.reportable !== false) console.log(result);
                     return { success: false, metadata: result.metadata };
                 } else {
-                    addBreadcrumb(`Successfully activated ${id}`, { category: 'interceptor' });
+                    console.log(`Successfully activated ${id}`, { category: 'interceptor' });
                     return { success: true, metadata: result };
                 }
             },
@@ -179,7 +178,7 @@ const buildResolvers = (
                 const interceptor = interceptors[id];
                 if (!interceptor) throw new Error(`Unknown interceptor ${id}`);
 
-                await interceptor.deactivate(proxyPort, options).catch(reportError);
+                await interceptor.deactivate(proxyPort, options).catch(console.log);
                 return { success: !interceptor.isActive(proxyPort) };
             },
             triggerUpdate: () => {
@@ -206,7 +205,7 @@ const buildResolvers = (
                 try {
                     return await interceptor.isActive(proxyPort);
                 } catch (e) {
-                    reportError(e);
+                    console.log(e);
                     return false;
                 }
             },
@@ -228,7 +227,7 @@ const buildResolvers = (
                         undefined
                     );
                 } catch (e) {
-                    reportError(e);
+                    console.log(e);
                     return undefined;
                 }
             }
@@ -295,17 +294,17 @@ export class HttpToolkitServerApi extends events.EventEmitter {
 
         this.server.use(corsGate(
             ENABLE_PLAYGROUND
-            // When the debugging playground is enabled, we're slightly more lax
-            ? {
-                strict: true,
-                allowSafe: true,
-                origin: 'http://localhost:45457'
-            }
-            : {
-                strict: true, // MUST send an allowed origin
-                allowSafe: false, // Even for HEAD/GET requests (should be none anyway)
-                origin: '' // No origin - we accept *no* same-origin requests
-            }
+                // When the debugging playground is enabled, we're slightly more lax
+                ? {
+                    strict: true,
+                    allowSafe: true,
+                    origin: 'http://localhost:45457'
+                }
+                : {
+                    strict: true, // MUST send an allowed origin
+                    allowSafe: false, // Even for HEAD/GET requests (should be none anyway)
+                    origin: '' // No origin - we accept *no* same-origin requests
+                }
         ));
 
         this.server.use((req, res, next) => {

@@ -11,7 +11,6 @@ import { AbortController } from 'node-abort-controller';
 import { chmod, deleteFile, readDir } from '../../util/fs';
 import { rawHeadersToHeaders } from '../../util/http';
 import { destroyable, DestroyableServer } from '../../destroyable-server';
-import { reportError } from '../../error-tracking';
 import { addShutdownHandler } from '../../shutdown';
 
 import {
@@ -161,7 +160,7 @@ async function createDockerProxy(proxyPort: number, httpsConfig: { certPath: str
         if (reqPath.match(BUILD_IMAGE_MATCHER)) {
             if (reqUrl.searchParams.get('remote')) {
                 res.writeHead(400);
-                reportError("Build interception failed due to unsupported 'remote' param");
+                console.log("Build interception failed due to unsupported 'remote' param");
 
                 if (reqUrl.searchParams.get('remote') === 'client-session') {
                     res.end("HTTP Toolkit does not yet support BuildKit-powered builds");
@@ -356,7 +355,7 @@ async function createDockerProxy(proxyPort: number, httpsConfig: { certPath: str
         // Outside windows, sockets live on the filesystem, and persist. If a server
         // failed to clean up properly, they may still be present, which will
         // break server startup, so we clean up first:
-        await deleteFile(proxyListenPath).catch(() => {});
+        await deleteFile(proxyListenPath).catch(() => { });
     }
 
     if (process.platform === 'win32') {

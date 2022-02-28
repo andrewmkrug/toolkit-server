@@ -9,7 +9,6 @@ import updateCommand from '@oclif/plugin-update/lib/commands/update';
 
 import { HttpToolkitServerApi } from './api-server';
 import { checkBrowserConfig } from './browsers';
-import { reportError } from './error-tracking';
 import { ALLOWED_ORIGINS } from './constants';
 
 import { delay } from './util/promise';
@@ -30,7 +29,7 @@ async function generateHTTPSConfig(configPath: string) {
     const keyPath = path.join(configPath, 'ca.key');
     const certPath = path.join(configPath, 'ca.pem');
 
-    const [ certContent ] = await Promise.all([
+    const [certContent] = await Promise.all([
         readFile(certPath, 'utf8').then((certContent) => {
             checkCertExpiry(certContent);
             return certContent;
@@ -71,16 +70,16 @@ function manageBackgroundServices(
 ) {
     standalone.on('mock-server-started', async (server) => {
         startDockerInterceptionServices(server.port, httpsConfig, ruleParameters)
-        .catch((error) => {
-            console.log("Could not start Docker components:", error);
-        });
+            .catch((error) => {
+                console.log("Could not start Docker components:", error);
+            });
     });
 
     standalone.on('mock-server-stopping', (server) => {
         stopDockerInterceptionServices(server.port, ruleParameters)
-        .catch((error) => {
-            console.log("Could not stop Docker components:", error);
-        });
+            .catch((error) => {
+                console.log("Could not stop Docker components:", error);
+            });
     });
 }
 
@@ -147,21 +146,21 @@ export async function runHTK(options: {
     const updateMutex = new Mutex();
     apiServer.on('update-requested', () => {
         updateMutex.runExclusive(() =>
-            (<Promise<void>> updateCommand.run(['stable']))
-            .catch((error) => {
-                // Received successful update that wants to restart the server
-                if (isErrorLike(error) && error.code === 'EEXIT') {
-                    // Block future update checks for one hour.
+            (<Promise<void>>updateCommand.run(['stable']))
+                .catch((error) => {
+                    // Received successful update that wants to restart the server
+                    if (isErrorLike(error) && error.code === 'EEXIT') {
+                        // Block future update checks for one hour.
 
-                    // If we don't, we'll redownload the same update again every check.
-                    // We don't want to block it completely though, in case this server
-                    // stays open for a very long time.
-                    return delay(1000 * 60 * 60);
-                }
+                        // If we don't, we'll redownload the same update again every check.
+                        // We don't want to block it completely though, in case this server
+                        // stays open for a very long time.
+                        return delay(1000 * 60 * 60);
+                    }
 
-                console.log(error);
-                reportError('Failed to check for updates');
-            })
+                    console.log(error);
+                    console.log('Failed to check for updates');
+                })
         );
     });
 

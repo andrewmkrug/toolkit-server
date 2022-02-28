@@ -6,7 +6,6 @@ import { Mutex } from 'async-mutex';
 import { DOCKER_HOST_HOSTNAME, isImageAvailable } from './docker-commands';
 import { isDockerAvailable } from './docker-interception-services';
 import { delay } from '../../util/promise';
-import { reportError } from '../../error-tracking';
 
 const DOCKER_TUNNEL_IMAGE = "httptoolkit/docker-socks-tunnel:v1.1.0";
 const DOCKER_TUNNEL_LABEL = "tech.httptoolkit.docker.tunnel";
@@ -79,10 +78,9 @@ export function ensureDockerTunnelRunning(proxyPort: number) {
                             // We use the host-gateway address on engines where that's possible, or
                             // the default Docker bridge host IP when it's not, because we're always
                             // connected to that network.
-                            `${DOCKER_HOST_HOSTNAME}:${
-                                semver.satisfies(engineVersion, '>= 20.10')
-                                    ? 'host-gateway'
-                                    : defaultBridgeGateway || '172.17.0.1'
+                            `${DOCKER_HOST_HOSTNAME}:${semver.satisfies(engineVersion, '>= 20.10')
+                                ? 'host-gateway'
+                                : defaultBridgeGateway || '172.17.0.1'
                             }`
                             // (This doesn't reuse getDockerHostIp, since the logic is slightly
                             // simpler  and we never have container metadata/network state).
@@ -123,7 +121,7 @@ export function ensureDockerTunnelRunning(proxyPort: number) {
                     })
             );
             portCache[proxyPort] = refreshTunnelPort;
-            refreshTunnelPort.catch(reportError);
+            refreshTunnelPort.catch(console.log);
         }
     }).finally(() => {
         // Clean up the promise, so that future calls to ensureRunning re-run this check.
@@ -267,15 +265,15 @@ export async function stopDockerTunnel(proxyPort: number | 'all'): Promise<void>
             filters: JSON.stringify({
                 label: [
                     proxyPort === 'all'
-                    ? DOCKER_TUNNEL_LABEL
-                    : `${DOCKER_TUNNEL_LABEL}=${proxyPort}`
+                        ? DOCKER_TUNNEL_LABEL
+                        : `${DOCKER_TUNNEL_LABEL}=${proxyPort}`
                 ]
             })
         });
 
         await Promise.all(containers.map(async (containerData) => {
             const container = docker.getContainer(containerData.Id);
-            await container.remove({ force: true }).catch(() => {});
+            await container.remove({ force: true }).catch(() => { });
         }));
     });
 }
