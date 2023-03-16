@@ -45,7 +45,7 @@
     "@types/tar-fs": "^2.0.0",
     "@types/tar-stream": "^2.2.1",
     "@types/tmp": "0.0.33",
-    "async-mutex": "^0.1.3",
+    "async-mutex": "^0.4.0",
     "chrome-remote-interface": "^0.28.0",
     "cors": "^2.8.5",
     "cors-gate": "^1.1.3",
