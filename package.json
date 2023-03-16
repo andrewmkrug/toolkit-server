@@ -58,7 +58,7 @@
     "express-graphql": "^0.11.0",
     "graphql": "^14.7.0",
     "gunzip-maybe": "^1.4.2",
-    "iconv-lite": "^0.4.24",
+    "iconv-lite": "^0.6.0",
     "lodash": "^4.17.21",
     "lookpath": "^1.2.1",
     "mime-types": "^2.1.27",
