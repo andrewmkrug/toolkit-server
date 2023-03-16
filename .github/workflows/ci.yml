@@ -12,7 +12,7 @@ jobs:
     env:
       DIND_HOST: unix:///tmp/docker.sock
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/setup-node@v1
         with:
@@ -121,7 +121,7 @@ jobs:
       - build
       # - test-distributables
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Get our distributables
         uses: actions/download-artifact@v2
