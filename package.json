@@ -26,7 +26,7 @@
   "homepage": "https://github.com/httptoolkit/httptoolkit-server",
   "bugs": "https://github.com/httptoolkit/httptoolkit-server/issues",
   "dependencies": {
-    "@devicefarmer/adbkit": "^2.11.2",
+    "@devicefarmer/adbkit": "^3.3.8",
     "@graphql-tools/schema": "^7.1.5",
     "@graphql-tools/utils": "^6.0.18",
     "@httptoolkit/browser-launcher": "^2.0.1",
@@ -66,7 +66,7 @@
     "mockttp": "^2.6.0",
     "node-abort-controller": "^3.0.1",
     "node-fetch": "^2.6.1",
-    "node-forge": "^1.2.1",
+    "node-forge": "^1.4.0",
     "node-gsettings-wrapper": "^0.5.0",
     "os-proxy-config": "^1.1.1",
     "portfinder": "^1.0.25",
